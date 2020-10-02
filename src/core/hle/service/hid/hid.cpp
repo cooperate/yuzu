@@ -1277,7 +1277,7 @@ public:
             {1153, nullptr, "GetTouchScreenDefaultConfiguration"},
             {1154, nullptr, "IsFirmwareAvailableForNotification"},
             {1155, nullptr, "SetForceHandheldStyleVibration"},
-            {1156, nullptr, "SendConnectionTriggerWithoutTimeoutEvent"},
+            {1156, nullptr, "SendConnectionTriggerWithoutTimeoutEvent"}
         };
         // clang-format on
 
@@ -1300,28 +1300,122 @@ public:
 
 class HidBus final : public ServiceFramework<HidBus> {
 public:
-    explicit HidBus() : ServiceFramework{"hidbus"} {
+    explicit HidBus(Core::System& system) : ServiceFramework{"hidbus"} {
         // clang-format off
         static const FunctionInfo functions[] = {
-            {1, nullptr, "GetBusHandle"},
-            {2, nullptr, "IsExternalDeviceConnected"},
+            {1, &HidBus::GetBusHandle, "GetBusHandle"},
+            {2, &HidBus::IsExternalDeviceConnected, "IsExternalDeviceConnected"},
             {3, nullptr, "Initialize"},
             {4, nullptr, "Finalize"},
             {5, nullptr, "EnableExternalDevice"},
-            {6, nullptr, "GetExternalDeviceId"},
-            {7, nullptr, "SendCommandAsync"},
-            {8, nullptr, "GetSendCommandAsynceResult"},
-            {9, nullptr, "SetEventForSendCommandAsycResult"},
-            {10, nullptr, "GetSharedMemoryHandle"},
+            {6, &HidBus::GetExternalDeviceId, "GetExternalDeviceId"},
+            {7, &HidBus::SendCommandAsync, "SendCommandAsync"},
+            {8, &HidBus::GetSendCommandAsynceResult, "GetSendCommandAsynceResult"},
+            {9, &HidBus::SetEventForSendCommandAsycResult, "SetEventForSendCommandAsycResult"},
+            {10, &HidBus::GetSharedMemoryHandle, "GetSharedMemoryHandle"},
             {11, nullptr, "EnableJoyPollingReceiveMode"},
             {12, nullptr, "DisableJoyPollingReceiveMode"},
-            {13, nullptr, "GetPollingData"},
-            {14, nullptr, "SetStatusManagerType"},
+            {13, &HidBus::GetPollingData, "GetPollingData"},
+            {14, &HidBus::SetStatusManagerType, "SetStatusManagerType"},
         };
         // clang-format on
 
         RegisterHandlers(functions);
     }
+
+    std::shared_ptr<IAppletResource> GetAppletResource();
+
+private:
+    void GetBusHandle(Kernel::HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+
+        const auto npad_id_type{rp.PopRaw<u32>()};
+        const auto bus_type{rp.PopRaw<u64>()};
+        const auto applet_resource_user_id{rp.Pop<u64>()};
+
+        LOG_DEBUG(Service_HID, "(STUBBED) called");
+
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(RESULT_SUCCESS);
+        rb.Push<bool>(true);
+        // rb.Push<u64>(BusHandle);???
+    }
+
+    void GetSharedMemoryHandle(Kernel::HLERequestContext& ctx, Core::System& system) {
+        auto& kernel = system.Kernel();
+        IPC::RequestParser rp{ctx};
+
+        LOG_DEBUG(Service_HID, "(STUBBED) called");
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_SUCCESS);
+        rb.PushCopyObjects(SharedFrom(&kernel.GetHidSharedMem()));
+    }
+
+    void IsExternalDeviceConnected(Kernel::HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+
+        const auto bus_handle{rp.PopRaw<BusHandle>()};
+
+        LOG_DEBUG(Service_HID, "(STUBBED) called");
+
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(RESULT_SUCCESS);
+        rb.Push<bool>(true);
+    }
+
+    void GetExternalDeviceId(Kernel::HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+
+        const auto bus_handle{rp.PopRaw<BusHandle>()};
+
+        LOG_DEBUG(Service_HID, "(STUBBED) called");
+
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(RESULT_SUCCESS);
+        rb.Push<u32>(0);
+    }
+
+    void SendCommandAsync(Kernel::HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+
+        const auto input_buffer{rp.PopRaw<0x21>()};
+        const auto bus_handle{rp.PopRaw<BusHandle>()};
+        LOG_DEBUG(Service_HID, "(STUBBED) called");
+    };
+
+    void GetSendCommandAsynceResult(Kernel::HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+
+        const auto input_buffer{rp.PopRaw<0x22>()};
+        const auto bus_handle{rp.PopRaw<BusHandle>()};
+        LOG_DEBUG(Service_HID, "(STUBBED) called");
+
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(RESULT_SUCCESS);
+        rb.Push<u32>(0);
+    };
+
+    void SetEventForSendCommandAsycResult(Kernel::HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+
+        const auto bus_handle{rp.PopRaw<BusHandle>()};
+        LOG_DEBUG(Service_HID, "(STUBBED) called");
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(RESULT_SUCCESS);
+        rb.Push<Event>(0);
+    };
+
+    void GetPollingData(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_HID, "(STUBBED) called");
+    };
+
+    void SetStatusManagerType(Kernel::HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+
+        const auto input{rp.PopRaw<u32>()};
+        LOG_DEBUG(Service_HID, "(STUBBED) called");
+    };
 };
 
 void ReloadInputDevices() {
@@ -1330,7 +1424,7 @@ void ReloadInputDevices() {
 
 void InstallInterfaces(SM::ServiceManager& service_manager, Core::System& system) {
     std::make_shared<Hid>(system)->InstallAsService(service_manager);
-    std::make_shared<HidBus>()->InstallAsService(service_manager);
+    std::make_shared<HidBus>(system)->InstallAsService(service_manager);
     std::make_shared<HidDbg>()->InstallAsService(service_manager);
     std::make_shared<HidSys>()->InstallAsService(service_manager);
     std::make_shared<HidTmp>()->InstallAsService(service_manager);
