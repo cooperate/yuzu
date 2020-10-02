@@ -39,6 +39,25 @@ enum class HidController : std::size_t {
     MaxControllers,
 };
 
+struct BusHandle {
+    u32 AbstractedPadId;
+    u8 InternalIndex;
+    u8 PlayerNumber;
+    u8 BusTypeId;
+    u8 IsValid;
+};
+static_assert(sizeof(BusHandle) == 0x8, "BusHandle is an invalid size");
+
+struct Type21InputBuffer {
+    INSERT_PADDING_BYTES(0x21);
+};
+static_assert(sizeof(Type21InputBuffer) == 0x21, "Type21InputBuffer is an invalid size");
+
+struct Type22OutputBuffer {
+    INSERT_PADDING_BYTES(0x22);
+};
+static_assert(sizeof(Type22OutputBuffer) == 0x22, "Type22OutputBuffer is an invalid size");
+
 class IAppletResource final : public ServiceFramework<IAppletResource> {
 public:
     explicit IAppletResource(Core::System& system);

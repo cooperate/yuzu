@@ -1300,7 +1300,10 @@ public:
 
 class HidBus final : public ServiceFramework<HidBus> {
 public:
-    explicit HidBus(Core::System& system) : ServiceFramework{"hidbus"} {
+    explicit HidBus(Core::System& system) : ServiceFramework{"hidbus"}, system(system) {
+        auto& kernel = system.Kernel();
+        shared_mem = SharedFrom(&kernel.GetHidSharedMem());
+
         // clang-format off
         static const FunctionInfo functions[] = {
             {1, &HidBus::GetBusHandle, "GetBusHandle"},
@@ -1323,41 +1326,30 @@ public:
         RegisterHandlers(functions);
     }
 
-    std::shared_ptr<IAppletResource> GetAppletResource();
-
 private:
+    std::shared_ptr<Kernel::SharedMemory> shared_mem;
+    Core::System& system;
+
     void GetBusHandle(Kernel::HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
-
         const auto npad_id_type{rp.PopRaw<u32>()};
         const auto bus_type{rp.PopRaw<u64>()};
         const auto applet_resource_user_id{rp.Pop<u64>()};
 
-        LOG_DEBUG(Service_HID, "(STUBBED) called");
-
-        IPC::ResponseBuilder rb{ctx, 3};
-        rb.Push(RESULT_SUCCESS);
-        rb.Push<bool>(true);
-        // rb.Push<u64>(BusHandle);???
-    }
-
-    void GetSharedMemoryHandle(Kernel::HLERequestContext& ctx, Core::System& system) {
-        auto& kernel = system.Kernel();
-        IPC::RequestParser rp{ctx};
-
-        LOG_DEBUG(Service_HID, "(STUBBED) called");
+        LOG_ERROR(Service_HID, "(STUBBED) called");
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
-        rb.PushCopyObjects(SharedFrom(&kernel.GetHidSharedMem()));
+        rb.Push<bool>(true);
+        //rb.Push<BusHandle>(applet_resource->GetController<Controller_NPad>(HidController::NPad)
+        //                   .GetBusHandle());
     }
 
     void IsExternalDeviceConnected(Kernel::HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
-
         const auto bus_handle{rp.PopRaw<BusHandle>()};
 
-        LOG_DEBUG(Service_HID, "(STUBBED) called");
+        LOG_ERROR(Service_HID, "(STUBBED) called");
 
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(RESULT_SUCCESS);
@@ -1366,10 +1358,9 @@ private:
 
     void GetExternalDeviceId(Kernel::HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
-
         const auto bus_handle{rp.PopRaw<BusHandle>()};
 
-        LOG_DEBUG(Service_HID, "(STUBBED) called");
+        LOG_ERROR(Service_HID, "(STUBBED) called");
 
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(RESULT_SUCCESS);
@@ -1378,18 +1369,21 @@ private:
 
     void SendCommandAsync(Kernel::HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
-
-        const auto input_buffer{rp.PopRaw<0x21>()};
+        const auto input_buffer{rp.PopRaw<Type21InputBuffer>()};
         const auto bus_handle{rp.PopRaw<BusHandle>()};
-        LOG_DEBUG(Service_HID, "(STUBBED) called");
+
+        LOG_ERROR(Service_HID, "(STUBBED) called");
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_SUCCESS);
     };
 
     void GetSendCommandAsynceResult(Kernel::HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
-
-        const auto input_buffer{rp.PopRaw<0x22>()};
+        const auto input_buffer{rp.PopRaw<Type22OutputBuffer>()};
         const auto bus_handle{rp.PopRaw<BusHandle>()};
-        LOG_DEBUG(Service_HID, "(STUBBED) called");
+
+        LOG_ERROR(Service_HID, "(STUBBED) called");
 
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(RESULT_SUCCESS);
@@ -1398,23 +1392,35 @@ private:
 
     void SetEventForSendCommandAsycResult(Kernel::HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
-
         const auto bus_handle{rp.PopRaw<BusHandle>()};
-        LOG_DEBUG(Service_HID, "(STUBBED) called");
-        IPC::ResponseBuilder rb{ctx, 3};
+
+        LOG_ERROR(Service_HID, "(STUBBED) called");
+
+        IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
-        rb.Push<Event>(0);
+        //rb.Push<Event>(0);
     };
 
+    void GetSharedMemoryHandle(Kernel::HLERequestContext& ctx) {
+        LOG_ERROR(Service_HID, "called");
+
+        IPC::ResponseBuilder rb{ctx, 2, 1};
+        rb.Push(RESULT_SUCCESS);
+        rb.PushCopyObjects(shared_mem);
+    }
+
     void GetPollingData(Kernel::HLERequestContext& ctx) {
-        LOG_DEBUG(Service_HID, "(STUBBED) called");
+        LOG_ERROR(Service_HID, "(STUBBED) called");
     };
 
     void SetStatusManagerType(Kernel::HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
-
         const auto input{rp.PopRaw<u32>()};
-        LOG_DEBUG(Service_HID, "(STUBBED) called");
+
+        LOG_ERROR(Service_HID, "(STUBBED) called");
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_SUCCESS);
     };
 };
 
