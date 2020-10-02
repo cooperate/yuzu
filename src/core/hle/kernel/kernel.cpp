@@ -250,10 +250,12 @@ struct KernelCore::Impl {
         constexpr std::size_t font_size{0x1100000};
         constexpr std::size_t irs_size{0x8000};
         constexpr std::size_t time_size{0x1000};
+        constexpr std::size_t hidbus_size{0x1000};
         constexpr PAddr hid_addr{layout.System().StartAddress()};
         constexpr PAddr font_pa{layout.System().StartAddress() + hid_size};
         constexpr PAddr irs_addr{layout.System().StartAddress() + hid_size + font_size};
         constexpr PAddr time_addr{layout.System().StartAddress() + hid_size + font_size + irs_size};
+        constexpr PAddr hidbus_addr{layout.System().StartAddress() + hid_size + font_size + irs_size + time_addr};
 
         // Initialize memory manager
         memory_manager = std::make_unique<Memory::MemoryManager>();
@@ -283,6 +285,10 @@ struct KernelCore::Impl {
             system.Kernel(), system.DeviceMemory(), nullptr,
             {time_addr, time_size / Memory::PageSize}, Memory::MemoryPermission::None,
             Memory::MemoryPermission::Read, time_addr, time_size, "Time:SharedMemory");
+        hidbus_shared_mem = Kernel::SharedMemory::Create(
+            system.Kernel(), system.DeviceMemory(), nullptr,
+            {hidbus_addr, hidbus_size / Memory::PageSize}, Memory::MemoryPermission::None,
+            Memory::MemoryPermission::Read, hidbus_addr, hidbus_size, "HidBus:SharedMemory");
 
         // Allocate slab heaps
         user_slab_heap_pages = std::make_unique<Memory::SlabHeap<Memory::Page>>();
@@ -336,6 +342,7 @@ struct KernelCore::Impl {
     std::shared_ptr<Kernel::SharedMemory> font_shared_mem;
     std::shared_ptr<Kernel::SharedMemory> irs_shared_mem;
     std::shared_ptr<Kernel::SharedMemory> time_shared_mem;
+    std::shared_ptr<Kernel::SharedMemory> hidbus_shared_mem;
 
     std::array<std::shared_ptr<Thread>, Core::Hardware::NUM_CPU_CORES> suspend_threads{};
     std::array<Core::CPUInterruptHandler, Core::Hardware::NUM_CPU_CORES> interrupts{};
@@ -593,6 +600,14 @@ Kernel::SharedMemory& KernelCore::GetTimeSharedMem() {
 
 const Kernel::SharedMemory& KernelCore::GetTimeSharedMem() const {
     return *impl->time_shared_mem;
+}
+
+Kernel::SharedMemory& KernelCore::GetHidBusSharedMem() {
+    return *impl->hidbus_shared_mem;
+}
+
+const Kernel::SharedMemory& KernelCore::GetHidBusSharedMem() const {
+    return *impl->hidbus_shared_mem;
 }
 
 void KernelCore::Suspend(bool in_suspention) {

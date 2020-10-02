@@ -213,6 +213,12 @@ public:
     /// Gets the shared memory object for Time services.
     const Kernel::SharedMemory& GetTimeSharedMem() const;
 
+    /// Gets the shared memory object for HidBus services.
+    Kernel::SharedMemory& GetHidBusSharedMem();
+
+    /// Gets the shared memory object for HidBus services.
+    const Kernel::SharedMemory& GetHidBusSharedMem() const;
+
     /// Suspend/unsuspend the OS.
     void Suspend(bool in_suspention);
 

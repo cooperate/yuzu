@@ -1302,7 +1302,7 @@ class HidBus final : public ServiceFramework<HidBus> {
 public:
     explicit HidBus(Core::System& system) : ServiceFramework{"hidbus"}, system(system) {
         auto& kernel = system.Kernel();
-        shared_mem = SharedFrom(&kernel.GetHidSharedMem());
+        shared_mem = SharedFrom(&kernel.GetHidBusSharedMem());
 
         // clang-format off
         static const FunctionInfo functions[] = {
