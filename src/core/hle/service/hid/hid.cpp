@@ -1364,7 +1364,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(RESULT_SUCCESS);
-        rb.Push<u32>(0);
+        rb.Push<u32>(0x20);
     }
 
     void SendCommandAsync(Kernel::HLERequestContext& ctx) {
