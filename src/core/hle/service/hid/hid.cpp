@@ -1324,9 +1324,15 @@ public:
         // clang-format on
 
         RegisterHandlers(functions);
+        send_command_asyc_event = Kernel::WritableEvent::CreateEventPair(
+            system.Kernel(), "HidBus:SendCommandAsycEvent");
     }
 
+    static_assert(sizeof(HidBusEntry) == 0x80, "NPadEntry is an invalid size");
+    std::array<HidBusEntry, 12> shared_memory_entries{}; // 12 in 6.0.0+
+
 private:
+    Kernel::EventPair send_command_asyc_event;
     std::shared_ptr<Kernel::SharedMemory> shared_mem;
     Core::System& system;
 
@@ -1336,13 +1342,19 @@ private:
         const auto bus_type{rp.PopRaw<u64>()};
         const auto applet_resource_user_id{rp.Pop<u64>()};
 
+        /*BusHandle bushandle;
+        bushandle.AbstractedPadId = 0x20;
+        bushandle.BusTypeId = 0;
+        bushandle.InternalIndex = 0;
+        bushandle.IsValid = true;
+        bushandle.PlayerNumber = 0;*/
+
         LOG_ERROR(Service_HID, "(STUBBED) called");
 
-        IPC::ResponseBuilder rb{ctx, 2};
+        IPC::ResponseBuilder rb{ctx, 2, 1};
         rb.Push(RESULT_SUCCESS);
         rb.Push<bool>(true);
-        //rb.Push<BusHandle>(applet_resource->GetController<Controller_NPad>(HidController::NPad)
-        //                   .GetBusHandle());
+        //rb.PushCopyObjects(bushandle);
     }
 
     void IsExternalDeviceConnected(Kernel::HLERequestContext& ctx) {
@@ -1364,6 +1376,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(RESULT_SUCCESS);
+        // 0x20 is the id for the ring controller
         rb.Push<u32>(0x20);
     }
 
@@ -1396,9 +1409,9 @@ private:
 
         LOG_ERROR(Service_HID, "(STUBBED) called");
 
-        IPC::ResponseBuilder rb{ctx, 2};
+        IPC::ResponseBuilder rb{ctx, 2, 1};
         rb.Push(RESULT_SUCCESS);
-        //rb.Push<Event>(0);
+        rb.PushCopyObjects(send_command_asyc_event.readable);
     };
 
     void GetSharedMemoryHandle(Kernel::HLERequestContext& ctx) {

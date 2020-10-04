@@ -39,6 +39,27 @@ enum class HidController : std::size_t {
     MaxControllers,
 };
 
+enum class JoyPollingMode : u32 {
+    GetJoyDisableSixAxisPollingDataAccessor,
+    GetJoyEnableSixAxisPollingDataAccessor,
+    GetJoyButtonOnlyPollingDataAccessor,
+};
+
+struct HidBusEntry {
+    u8 flag;
+    u8 padding_byte1;
+    u8 padding_byte2;
+    u8 padding_byte3;
+    u32 resutl;
+    u8 deviceEnabled;
+    u8 isValid;
+    u8 pollingEnabled;
+    u8 unknow_padding;
+    JoyPollingMode polling_mode;
+    INSERT_PADDING_BYTES(0x70);
+};
+static_assert(sizeof(HidBusEntry) == 0x80, "HidBusEntry is an invalid size");
+
 struct BusHandle {
     u32 AbstractedPadId;
     u8 InternalIndex;
